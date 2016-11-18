@@ -90,9 +90,10 @@ def parse_page_comments(child_comments, comments, soup):
         title = strip_str(silba_elem.string)
         content = strip_str(user_comment.find('div', 'uyan_cmt_txt').string)
         orig_time = strip_str(user_comment.find('div', 'cmt_time').string)
-        if orig_time.find("年") == -1:
-            orig_time = '2016年 ' + orig_time
-        time_obj = datetime.strptime(orig_time, '%Y年 %m月 %d日 %H:%M')
+        # 所有时间都缺少年的信息， 只能先用2016年代替，要靠其它方式补充年的信息，
+        # 如果是Jekyll脚本， 可以获取每篇博客的发表时间 来进行计算， 可以粗略估计评论时间必须>博客发表时间
+        orig_time = '2016年 ' + orig_time
+        time_obj = datetime.strptime(orig_time, '%Y年  %m月 %d日 %H:%M')
         time = time_obj.strftime("%Y-%m-%d %H:%M:%S")
         comment = {"uname": uname, "url": url, "title": title, "content": content, "time": time}
         if parent_u_name != '':
@@ -144,7 +145,7 @@ def main():
         parent_uname = c_comment["parent_uname"]
         del c_comment["parent_uname"]
         for p_comment in comments:
-            if p_comment['uname'] == parent_uname:
+            if p_comment['uname'] == parent_uname and c_comment["url"] == p_comment["url"]:
                 if not 'child' in p_comment.keys():
                     p_comment['child'] = [c_comment]
                 else:
